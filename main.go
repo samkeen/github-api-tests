@@ -12,7 +12,7 @@ import (
 type Config struct {
 	GhToken string
 	GhOwner string
-	GhRepo string
+	GhRepo  string
 }
 
 // Model
@@ -26,18 +26,7 @@ type Package struct {
 
 func main() {
 
-
-	file, _ := os.Open("config.json")
-	defer file.Close()
-	decoder := json.NewDecoder(file)
-	config := Config{}
-	err := decoder.Decode(&config)
-	if err != nil {
-		fmt.Println("error:", err)
-		panic("No ./config.json file found")
-	}
-	fmt.Println(config.GhOwner)
-
+	config := getConfig()
 
 	ctx := context.Background()
 	tokenService := oauth2.StaticTokenSource(
@@ -55,14 +44,13 @@ func main() {
 	}
 
 	pack := &Package{
-		FullName: *repo.FullName,
+		FullName:    *repo.FullName,
 		Description: *repo.Description,
-		ForksCount: *repo.ForksCount,
-		StarsCount: *repo.StargazersCount,
+		ForksCount:  *repo.ForksCount,
+		StarsCount:  *repo.StargazersCount,
 	}
 
 	fmt.Printf("%+v\n", pack)
-
 
 	commitInfo, _, err := client.Repositories.ListCommits(ctx, config.GhOwner, config.GhRepo, nil)
 
@@ -97,6 +85,19 @@ func main() {
 		return
 	}
 
-	fmt.Printf("Limit: %d \nRemaining %d \n", rateLimit.Core.Limit, rateLimit.Core.Remaining ) // Last commit information
+	fmt.Printf("Limit: %d \nRemaining %d \n", rateLimit.Core.Limit, rateLimit.Core.Remaining) // Last commit information
 
+}
+
+func getConfig() Config {
+	file, _ := os.Open("config.json")
+	defer file.Close()
+	decoder := json.NewDecoder(file)
+	config := Config{}
+	err := decoder.Decode(&config)
+	if err != nil {
+		fmt.Println("error:", err)
+		panic("No ./config.json file found")
+	}
+	return config
 }
